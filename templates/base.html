@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fixed Asset Register</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; color: #1a1a2e; }
+  .sidebar { width: 220px; background: #1a1a2e; position: fixed; top: 0; left: 0; height: 100vh; overflow-y: auto; z-index: 100; }
+  .sidebar-logo { padding: 20px 16px; border-bottom: 1px solid #2d2d4e; }
+  .sidebar-logo h2 { color: #fff; font-size: 14px; font-weight: 600; }
+  .sidebar-logo p { color: #6b7db3; font-size: 11px; margin-top: 3px; }
+  .sidebar-section { padding: 12px 0; }
+  .sidebar-label { padding: 6px 16px; font-size: 10px; font-weight: 600; color: #6b7db3; letter-spacing: 1px; text-transform: uppercase; }
+  .sidebar a { display: flex; align-items: center; gap: 10px; padding: 9px 16px; color: #a0aec0; text-decoration: none; font-size: 13px; transition: all 0.15s; }
+  .sidebar a:hover, .sidebar a.active { background: #2d2d4e; color: #fff; }
+  .sidebar a .dot { width: 7px; height: 7px; border-radius: 50%; background: #4a5568; flex-shrink: 0; }
+  .sidebar a:hover .dot, .sidebar a.active .dot { background: #667eea; }
+  .main { margin-left: 220px; min-height: 100vh; }
+  .topbar { background: #fff; padding: 14px 28px; border-bottom: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: space-between; }
+  .topbar h1 { font-size: 18px; font-weight: 600; color: #1a1a2e; }
+  .topbar-right { font-size: 12px; color: #718096; }
+  .content { padding: 28px; }
+  .flash { padding: 12px 16px; border-radius: 8px; margin-bottom: 20px; font-size: 13px; }
+  .flash.success { background: #c6f6d5; color: #276749; border: 1px solid #9ae6b4; }
+  .flash.error { background: #fed7d7; color: #9b2c2c; border: 1px solid #fc8181; }
+  .btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; border-radius: 7px; font-size: 13px; font-weight: 500; cursor: pointer; border: none; text-decoration: none; transition: all 0.15s; }
+  .btn-primary { background: #667eea; color: #fff; }
+  .btn-primary:hover { background: #5a67d8; }
+  .btn-danger { background: #fc8181; color: #fff; }
+  .btn-danger:hover { background: #f56565; }
+  .btn-secondary { background: #e2e8f0; color: #4a5568; }
+  .btn-secondary:hover { background: #cbd5e0; }
+  .btn-sm { padding: 5px 10px; font-size: 11px; }
+  .card { background: #fff; border-radius: 12px; border: 1px solid #e2e8f0; overflow: hidden; }
+  .card-header { padding: 16px 20px; border-bottom: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: space-between; }
+  .card-header h3 { font-size: 15px; font-weight: 600; }
+  .card-body { padding: 20px; }
+</style>
+{% block extra_style %}{% endblock %}
+</head>
+<body>
+
+<div class="sidebar">
+  <div class="sidebar-logo">
+    <h2>Fixed Asset Register</h2>
+    <p>Local Server — v1.0</p>
+  </div>
+  <div class="sidebar-section">
+    <div class="sidebar-label">Overview</div>
+    <a href="/" class="{{ 'active' if request.path == '/' }}"><span class="dot"></span> Dashboard</a>
+  </div>
+  <div class="sidebar-section">
+    <div class="sidebar-label">Core Tables</div>
+    <a href="/table/assets" class="{{ 'active' if 'assets' in request.path }}"><span class="dot"></span> Asset Master</a>
+    <a href="/table/allocation" class="{{ 'active' if 'allocation' in request.path }}"><span class="dot"></span> Allocation</a>
+    <a href="/table/transfer" class="{{ 'active' if 'transfer' in request.path }}"><span class="dot"></span> Transfer Log</a>
+    <a href="/table/maintenance" class="{{ 'active' if 'maintenance' in request.path }}"><span class="dot"></span> Maintenance</a>
+    <a href="/table/purchase" class="{{ 'active' if 'purchase' in request.path }}"><span class="dot"></span> Purchase Register</a>
+    <a href="/table/disposal" class="{{ 'active' if 'disposal' in request.path }}"><span class="dot"></span> Disposal</a>
+    <a href="/table/software" class="{{ 'active' if 'software' in request.path }}"><span class="dot"></span> Software Tracking</a>
+  </div>
+  <div class="sidebar-section">
+    <div class="sidebar-label">Master Tables</div>
+    <a href="/table/employees" class="{{ 'active' if 'employees' in request.path }}"><span class="dot"></span> Employees</a>
+    <a href="/table/vendors" class="{{ 'active' if 'vendors' in request.path }}"><span class="dot"></span> Vendors</a>
+    <a href="/table/entities" class="{{ 'active' if 'entities' in request.path }}"><span class="dot"></span> Entities</a>
+    <a href="/table/locations" class="{{ 'active' if 'locations' in request.path }}"><span class="dot"></span> Locations</a>
+    <a href="/table/categories" class="{{ 'active' if 'categories' in request.path }}"><span class="dot"></span> Categories</a>
+    <a href="/table/departments" class="{{ 'active' if 'departments' in request.path }}"><span class="dot"></span> Departments</a>
+  </div>
+</div>
+
+<div class="main">
+  <div class="topbar">
+    <h1>{% block page_title %}Dashboard{% endblock %}</h1>
+    <div class="topbar-right">Connected to Google Sheets ✓</div>
+  </div>
+  <div class="content">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="flash {{ category }}">{{ message }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+    {% block content %}{% endblock %}
+  </div>
+</div>
+
+</body>
+</html>

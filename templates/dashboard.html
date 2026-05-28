@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% block page_title %}Dashboard{% endblock %}
+{% block extra_style %}
+<style>
+  .welcome{background:linear-gradient(135deg,#1a1a2e,#2d2d4e);border-radius:14px;padding:24px 28px;color:#fff;margin-bottom:24px;display:flex;align-items:center;justify-content:space-between;}
+  .welcome h2{font-size:22px;font-weight:700;}
+  .welcome p{color:#a0aec0;font-size:13px;margin-top:4px;}
+  .summary-row{display:flex;gap:14px;margin-bottom:24px;flex-wrap:wrap;}
+  .summary-box{background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:14px 20px;flex:1;min-width:140px;}
+  .summary-box .val{font-size:22px;font-weight:700;color:#1a1a2e;}
+  .summary-box .lbl{font-size:11px;color:#718096;text-transform:uppercase;font-weight:600;margin-top:2px;}
+  .section-title{font-size:11px;font-weight:700;color:#718096;text-transform:uppercase;letter-spacing:1px;margin:0 0 14px;}
+  .entity-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px;margin-bottom:28px;}
+  .entity-card{background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:18px;text-decoration:none;color:inherit;transition:all 0.2s;display:block;}
+  .entity-card:hover{border-color:#667eea;transform:translateY(-2px);box-shadow:0 6px 20px rgba(102,126,234,0.12);}
+  .entity-name{font-size:20px;font-weight:700;color:#1a1a2e;margin-bottom:2px;}
+  .entity-meta{font-size:12px;color:#718096;margin-bottom:10px;}
+  .entity-cost{font-size:13px;font-weight:600;color:#0F6E56;margin-bottom:10px;}
+  .cat-pills{display:flex;flex-wrap:wrap;gap:5px;}
+  .cat-pill{background:#eef2ff;color:#4c51bf;font-size:10px;font-weight:600;padding:2px 8px;border-radius:10px;}
+  .add-section{margin-top:4px;}
+  .add-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;}
+  .add-btn{background:#fff;border:1.5px dashed #cbd5e0;border-radius:10px;padding:14px 10px;text-align:center;text-decoration:none;color:#4a5568;font-size:12px;font-weight:500;transition:all 0.15s;display:block;}
+  .add-btn:hover{border-color:#667eea;color:#667eea;background:#eef2ff;}
+  .add-btn .icon{font-size:24px;margin-bottom:6px;}
+</style>
+{% endblock %}
+{% block content %}
+<div class="welcome">
+  <div>
+    <h2>Fixed Asset Register</h2>
+    <p>Live data · All entities · All asset types</p>
+  </div>
+  <div style="text-align:right">
+    <div style="font-size:26px;font-weight:700">{{ total_assets }}</div>
+    <div style="font-size:12px;color:#a0aec0">Total Assets</div>
+  </div>
+</div>
+
+<div class="summary-row">
+  <div class="summary-box">
+    <div class="val">{{ total_assets }}</div>
+    <div class="lbl">Total Assets</div>
+  </div>
+  <div class="summary-box">
+    <div class="val">₹{{ "{:,.0f}".format(grand_total_cost) }}</div>
+    <div class="lbl">Total Asset Value</div>
+  </div>
+  <div class="summary-box">
+    <div class="val">{{ entities|length }}</div>
+    <div class="lbl">Entities</div>
+  </div>
+  <div class="summary-box">
+    <div class="val">{{ category_fields|length }}</div>
+    <div class="lbl">Asset Types</div>
+  </div>
+</div>
+
+<div class="section-title">Click an entity to see its assets</div>
+<div class="entity-grid">
+  {% for entity in entities %}
+  {% set s = entity_stats[entity] %}
+  <a href="/entity/{{ entity }}" class="entity-card">
+    <div class="entity-name">{{ entity }}</div>
+    <div class="entity-meta">{{ s.total }} assets · {{ s.employees }} employees</div>
+    {% if s.total_cost > 0 %}
+    <div class="entity-cost">₹{{ "{:,.0f}".format(s.total_cost) }}</div>
+    {% endif %}
+    <div class="cat-pills">
+      {% for cat, count in s.by_cat.items() %}
+      <span class="cat-pill">{{ cat }} ×{{ count }}</span>
+      {% endfor %}
+      {% if not s.by_cat %}<span style="font-size:11px;color:#a0aec0">No assets yet</span>{% endif %}
+    </div>
+  </a>
+  {% endfor %}
+</div>
+
+<div class="section-title add-section">Add New Asset</div>
+<div class="add-grid">
+  {% for code, info in category_fields.items() %}
+  <a href="/add-asset/{{ code }}" class="add-btn">
+    <div class="icon">{{ info.icon }}</div>
+    {{ info.label }}
+  </a>
+  {% endfor %}
+</div>
+{% endblock %}

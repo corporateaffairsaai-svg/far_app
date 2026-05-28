@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% block page_title %}{{ 'Edit' if mode == 'edit' else 'Add' }} — {{ sheet_name }}{% endblock %}
+
+{% block extra_style %}
+<style>
+  .form-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 18px; }
+  .form-group { display: flex; flex-direction: column; gap: 6px; }
+  .form-group label { font-size: 12px; font-weight: 600; color: #4a5568; text-transform: uppercase; letter-spacing: 0.4px; }
+  .form-group input, .form-group select, .form-group textarea { padding: 9px 12px; border: 1px solid #e2e8f0; border-radius: 7px; font-size: 13px; font-family: inherit; outline: none; transition: border 0.15s; background: #fff; }
+  .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: #667eea; box-shadow: 0 0 0 3px rgba(102,126,234,0.1); }
+  .form-group textarea { resize: vertical; min-height: 80px; }
+  .form-actions { display: flex; gap: 12px; margin-top: 28px; padding-top: 20px; border-top: 1px solid #e2e8f0; }
+  .form-header { margin-bottom: 24px; }
+  .form-header h2 { font-size: 16px; font-weight: 600; color: #1a1a2e; }
+  .form-header p { font-size: 13px; color: #718096; margin-top: 4px; }
+  .auto-fields { background: #f7fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px 16px; margin-bottom: 20px; font-size: 12px; color: #718096; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div style="max-width: 900px;">
+  <div class="form-header">
+    <h2>{{ 'Edit Row' if mode == 'edit' else 'Add New Row' }} — {{ sheet_name }}</h2>
+    <p>{{ 'Update the fields below and click Save.' if mode == 'edit' else 'Fill in the details below and click Save to add a new row to Google Sheets.' }}</p>
+  </div>
+
+  {% if mode == 'add' %}
+  <div class="auto-fields">
+    Fields like Asset Tag, depreciation values, and Created On are auto-calculated by the sheet — leave them blank if unsure.
+  </div>
+  {% endif %}
+
+  <div class="card">
+    <div class="card-body">
+      <form method="post">
+        <div class="form-grid">
+          {% for h in headers %}
+          <div class="form-group">
+            <label>{{ h }}</label>
+            {% set val = row[h] if row and h in row else '' %}
+            {% if 'Status' in h %}
+              <select name="{{ h }}">
+                <option value="">-- Select --</option>
+                {% for opt in ['Active', 'Inactive', 'In Store', 'Disposed', 'Lost', 'Completed', 'Closed'] %}
+                <option value="{{ opt }}" {{ 'selected' if val == opt }}>{{ opt }}</option>
+                {% endfor %}
+              </select>
+            {% elif 'Method' in h %}
+              <select name="{{ h }}">
+                <option value="">-- Select --</option>
+                <option value="SLM" {{ 'selected' if val == 'SLM' }}>SLM</option>
+                <option value="WDV" {{ 'selected' if val == 'WDV' }}>WDV</option>
+              </select>
+            {% elif 'Condition' in h %}
+              <select name="{{ h }}">
+                <option value="">-- Select --</option>
+                {% for opt in ['Good', 'Fair', 'Poor', 'Damaged'] %}
+                <option value="{{ opt }}" {{ 'selected' if val == opt }}>{{ opt }}</option>
+                {% endfor %}
+              </select>
+            {% elif 'Remarks' in h or 'Description' in h or 'Reason' in h or 'Resolution' in h %}
+              <textarea name="{{ h }}">{{ val }}</textarea>
+            {% else %}
+              <input type="text" name="{{ h }}" value="{{ val }}" placeholder="{{ h }}">
+            {% endif %}
+          </div>
+          {% endfor %}
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary">Save to Google Sheets</button>
+          <a href="/table/{{ key }}" class="btn btn-secondary">Cancel</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

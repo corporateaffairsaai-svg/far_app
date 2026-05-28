@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% block page_title %}{{ sheet_name }}{% endblock %}
+{% block extra_style %}
+<style>
+  .toolbar{display:flex;align-items:center;gap:12px;margin-bottom:20px;flex-wrap:wrap;}
+  .search-box{display:flex;flex:1;max-width:360px;}
+  .search-box input{flex:1;padding:9px 14px;border:1px solid #e2e8f0;border-radius:7px 0 0 7px;font-size:13px;outline:none;}
+  .search-box input:focus{border-color:#667eea;}
+  .search-box button{padding:9px 16px;background:#667eea;color:#fff;border:none;border-radius:0 7px 7px 0;cursor:pointer;}
+  .count-badge{background:#eef2ff;color:#667eea;padding:3px 12px;border-radius:20px;font-size:12px;font-weight:600;}
+  .table-wrap{overflow-x:auto;}
+  table{width:100%;border-collapse:collapse;font-size:12px;}
+  thead th{background:#f7fafc;padding:10px 12px;text-align:left;font-weight:600;color:#4a5568;border-bottom:2px solid #e2e8f0;white-space:nowrap;font-size:11px;text-transform:uppercase;letter-spacing:0.4px;}
+  tbody td{padding:10px 12px;border-bottom:1px solid #f0f2f5;color:#2d3748;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  tbody tr:hover td{background:#f7fafc;}
+  .badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:600;}
+  .badge-green{background:#c6f6d5;color:#276749;}
+  .badge-gray{background:#e2e8f0;color:#4a5568;}
+  .badge-blue{background:#bee3f8;color:#2c5282;}
+  .empty-state{text-align:center;padding:60px;color:#a0aec0;}
+  .actions-col{display:flex;gap:5px;white-space:nowrap;}
+</style>
+{% endblock %}
+{% block content %}
+<div class="toolbar">
+  <form method="get" class="search-box">
+    <input type="text" name="q" placeholder="Search {{ sheet_name }}..." value="{{ search }}">
+    <button type="submit">Search</button>
+  </form>
+  {% if search %}<a href="/table/{{ key }}" style="font-size:12px;color:#718096;text-decoration:none;">✕ Clear</a>{% endif %}
+  <span class="count-badge">{{ rows|length }} rows</span>
+  <div style="margin-left:auto">
+    <a href="/add/{{ key }}" class="btn btn-primary">+ Add Row</a>
+  </div>
+</div>
+
+<div class="card">
+  <div class="table-wrap">
+    {% if rows %}
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          {% for h in headers %}<th>{{ h }}</th>{% endfor %}
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in rows %}
+        <tr>
+          <td style="color:#a0aec0;font-size:11px;">{{ loop.index }}</td>
+          {% for h in headers %}
+          <td title="{{ row.get(h,'') }}">
+            {% set val = row.get(h,'') %}
+            {% if val == 'Active' %}<span class="badge badge-green">Active</span>
+            {% elif val in ['Inactive','Closed','Completed','Scrapped'] %}<span class="badge badge-gray">{{ val }}</span>
+            {% elif val == 'In Store' %}<span class="badge badge-blue">In Store</span>
+            {% else %}{{ val }}{% endif %}
+          </td>
+          {% endfor %}
+          <td>
+            <div class="actions-col">
+              <a href="/edit/{{ key }}/{{ loop.index0 }}" class="btn btn-secondary btn-sm">Edit</a>
+              <form method="post" action="/delete/{{ key }}/{{ loop.index0 }}" style="display:inline" onsubmit="return confirm('Delete this row?')">
+                <button type="submit" class="btn btn-danger btn-sm">Del</button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div class="empty-state">
+      <h3 style="font-size:16px;margin-bottom:8px;color:#718096;">No rows found</h3>
+      <p>{% if search %}No results for "{{ search }}"{% else %}This table is empty — click Add Row to start{% endif %}</p>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

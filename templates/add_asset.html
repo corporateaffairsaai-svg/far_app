@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+{% block page_title %}Add {{ cat_info.label }}{% endblock %}
+{% block extra_style %}
+<style>
+  .back-link{display:inline-flex;align-items:center;gap:6px;color:#667eea;text-decoration:none;font-size:13px;margin-bottom:20px;}
+  .cat-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:24px;}
+  .cat-tab{padding:8px 16px;border-radius:20px;font-size:12px;font-weight:600;text-decoration:none;border:1.5px solid #e2e8f0;color:#718096;transition:all 0.15s;}
+  .cat-tab:hover{border-color:#667eea;color:#667eea;}
+  .cat-tab.active{background:#667eea;color:#fff;border-color:#667eea;}
+  .form-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;}
+  .form-group{display:flex;flex-direction:column;gap:5px;}
+  .form-group label{font-size:11px;font-weight:700;color:#4a5568;text-transform:uppercase;letter-spacing:0.5px;}
+  .form-group input,.form-group select,.form-group textarea{padding:9px 12px;border:1px solid #e2e8f0;border-radius:7px;font-size:13px;font-family:inherit;outline:none;transition:border 0.15s;background:#fff;}
+  .form-group input:focus,.form-group select:focus{border-color:#667eea;box-shadow:0 0 0 3px rgba(102,126,234,0.1);}
+  .form-group input[readonly]{background:#f7fafc;color:#718096;cursor:not-allowed;}
+  .form-actions{display:flex;gap:12px;margin-top:24px;padding-top:20px;border-top:1px solid #e2e8f0;}
+  .auto-badge{display:inline-block;background:#eef2ff;color:#667eea;font-size:10px;font-weight:600;padding:1px 6px;border-radius:4px;margin-left:6px;vertical-align:middle;}
+</style>
+{% endblock %}
+{% block content %}
+<a href="/" class="back-link">← Back to Dashboard</a>
+
+<div style="margin-bottom:20px;">
+  <div style="font-size:18px;font-weight:700;color:#1a1a2e;margin-bottom:4px;">Add New Asset</div>
+  <div style="font-size:13px;color:#718096;">Select asset type below</div>
+</div>
+
+<div class="cat-tabs">
+  {% for code, info in category_fields.items() %}
+  <a href="/add-asset/{{ code }}" class="cat-tab {{ 'active' if code == cat_code }}">
+    {{ info.icon }} {{ info.label }}
+  </a>
+  {% endfor %}
+</div>
+
+<div class="card">
+  <div style="padding:18px 24px;border-bottom:1px solid #e2e8f0;display:flex;align-items:center;gap:10px;">
+    <span style="font-size:28px;">{{ cat_info.icon }}</span>
+    <div>
+      <div style="font-size:15px;font-weight:600;color:#1a1a2e;">{{ cat_info.label }} Details</div>
+      <div style="font-size:12px;color:#718096;">{{ cat_info.fields|length }} fields — greyed fields are auto-filled</div>
+    </div>
+  </div>
+  <div style="padding:24px;">
+    <form method="post">
+      <div class="form-grid">
+        {% for field in cat_info.fields %}
+        <div class="form-group">
+          <label>
+            {{ field }}
+            {% if field == 'Category' %}<span class="auto-badge">auto</span>{% endif %}
+          </label>
+
+          {# AUTO-FILL CATEGORY #}
+          {% if field == 'Category' %}
+            <input type="text" name="{{ field }}" value="{{ cat_code }}" readonly>
+
+          {# ENTITY DROPDOWNS #}
+          {% elif field in ['Billing Entity','Current Operating Entity','Billing Unit','User Entity'] %}
+            <select name="{{ field }}">
+              <option value="">-- Select --</option>
+              {% for e in entities %}<option value="{{ e }}">{{ e }}</option>{% endfor %}
+            </select>
+
+          {# STATUS #}
+          {% elif field == 'Status' %}
+            <select name="{{ field }}">
+              <option value="Active">Active</option>
+              <option value="In Store">In Store</option>
+              <option value="Inactive">Inactive</option>
+              <option value="Disposed">Disposed</option>
+            </select>
+
+          {# ASSET CONDITION #}
+          {% elif field == 'Asset Condition' %}
+            <select name="{{ field }}">
+              <option value="Good">Good</option>
+              <option value="Fair">Fair</option>
+              <option value="Poor">Poor</option>
+              <option value="Damaged">Damaged</option>
+            </select>
+
+          {# DLP INSTALLED #}
+          {% elif field == 'DLP Installed' %}
+            <select name="{{ field }}">
+              <option value="Yes">Yes</option>
+              <option value="No">No</option>
+            </select>
+
+          {# DEPRECIATION METHOD #}
+          {% elif field == 'Depreciation Method' %}
+            <select name="{{ field }}">
+              <option value="SLM">SLM</option>
+              <option value="WDV">WDV</option>
+            </select>
+
+          {# LOCATION DROPDOWN #}
+          {% elif field == 'Current Location' or field == 'Assigned Location' %}
+            <select name="{{ field }}">
+              <option value="">-- Select Location --</option>
+              {% for loc in ['GGN','MUM','BLR','MAN','CHD','ZRK','CHN','PUN','HYD'] %}
+              <option value="{{ loc }}">{{ loc }}</option>
+              {% endfor %}
+            </select>
+
+          {# DATE FIELDS #}
+          {% elif 'Date' in field or 'Expiry' in field or 'Isu Date' in field %}
+            <input type="date" name="{{ field }}">
+
+          {# AMOUNT FIELDS #}
+          {% elif 'Amount' in field or 'Cost' in field or 'Value' in field %}
+            <input type="number" name="{{ field }}" placeholder="0" step="0.01">
+
+          {# ALL OTHER FIELDS #}
+          {% else %}
+            <input type="text" name="{{ field }}" placeholder="{{ field }}">
+          {% endif %}
+        </div>
+        {% endfor %}
+      </div>
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary">💾 Save to Google Sheets</button>
+        <a href="/" class="btn btn-secondary">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
